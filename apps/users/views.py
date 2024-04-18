@@ -59,11 +59,11 @@ def login(request):
             return redirect('/patient/home')
         
         messages.add_message(request, constants.ERROR, 'Usuario ou senha inválidos')
-        return redirect('users/login')
+        return redirect('/users/login')
 
 
 # Para podermos fazer o logout é simples e iremos usar o auth nativo do django novamente que ira atraves da request verificar se tem usuario logado e ira interromper a section.
 def logout(request):
     auth.logout(request)
-    return redirect('users/login')
+    return redirect('/users/login')
 

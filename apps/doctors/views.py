@@ -1,5 +1,6 @@
-from django.shortcuts import render, redirect
-from .models import Skills, DoctorProfile, is_doctor
+from django.shortcuts import render, redirect, HttpResponse
+from .models import Skills, DoctorProfile, is_doctor, Schedule
+from datetime import datetime
 
 #IMPORT MESSAGES
 from django.contrib import messages
@@ -51,5 +52,34 @@ def create_doctor(request):
 
     doctor_profile.save()
     messages.add_message(request, constants.SUCCESS, 'Cadastro medico salvo com sucesso!')
-    return redirect('doctors/schedule_appointment')
+    return redirect('/doctors/schedule')
 
+
+def schedule(request):
+
+    if not is_doctor(request.user):
+        messages.add_message(request, constants.ERROR, 'Somente médicos podem abrir um agendamento.')
+        return redirect('/users/logout')
+    
+    if request.method == 'GET':
+        doctor_photo = DoctorProfile.objects.get(user=request.user)
+        list_schedule = Schedule.objects.filter(user=request.user)
+        return render(request, 'schedule.html', {'doctor_photo': doctor_photo, 'list_schedule': list_schedule})
+    elif request.method == 'POST':
+        date = request.POST.get('date')
+        
+        # Estamos usando a biblioteca do datetime para converter a data em uma str.
+        date_formated = datetime.strptime(date, '%Y-%m-%dT%H:%M')
+
+        if date_formated <= datetime.now():
+            messages.add_message(request, constants.ERROR, 'A data não pode ser anterior a data atual!')
+            return redirect('/doctors/schedule')
+        
+        open_schedule = Schedule(
+            date=date,
+            user=request.user,
+        )
+
+        open_schedule.save()
+        messages.add_message(request, constants.SUCCESS, 'Agendamento realizado com sucesso!')
+        return redirect('/doctors/schedule')

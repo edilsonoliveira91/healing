@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block 'head' %}
+
+<link rel="stylesheet" href="{% static 'doctors/css/schedule.css' %}">
+<link rel="stylesheet" href="{% static 'users/css/users.css' %}">
+<link rel="stylesheet" href="{% static 'doctors/css/create_doctor.css' %}">
+<link rel="stylesheet" href="{% static 'patient/css/home.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+{% endblock 'head' %}
+
+
+{% block 'body' %}
+
+    <div class="container">
+        <br><br>
+
+        <div class="row">
+            <div class="col-md-8">
+
+                <div class="row">
+                    <div class="col-md-3"><img src="{{doctor.photo_profile.url}}" class="foto-perfil-card" alt=""></div>
+                    <div class="col-md">
+                        <p style="font-size: 20px" class="p-bold">Dr(a). {{doctor.name}}  <i class="bi bi-patch-check-fill icon-main"></i></p>
+                        <p>{{doctor.note}}</p>
+                    </div>
+                </div> 
+                <br>
+                {% if messages %}
+                    <br>
+                    {% for message in messages %}
+                        <section class="alert {{message.tags}}">
+                            {{message}}
+                        </section>
+                    {% endfor %}
+                {% endif %}
+                
+                <hr>
+                    
+            
+                <div class="row">
+                    
+                    {% for date in opened_date %}
+                        <div class="col-md-3">
+                            <a class="link" href="">
+                                <div class='selecionar-dia'>
+                                    <div class="header-dias">
+                                        <span class="mes">
+                                            {{date.date|date:"F"}}
+                                        </span>
+                                        <span class="dia-semana">
+                                            {{date.date|date:"l"}}
+                                        </span>
+                                    </div>
+                    
+                                    <div                        class="conteudo-data">
+                                        {{date.date}}
+                                    </div>
+                                </div>
+                            </a>
+                            <br>
+                        </div>
+                    {% endfor %}
+                    
+                </div>
+
+            </div>
+            <div class="col-md-4">
+
+            </div>
+        </div>
+
+    </div>
+{% endblock 'body' %}

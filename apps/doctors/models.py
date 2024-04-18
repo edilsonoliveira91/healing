@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime
 
 
 # Criamos uma funcao para retornar se o usuario é um medico cadastrado (existente).
@@ -29,5 +30,20 @@ class DoctorProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     skill = models.ForeignKey(Skills, on_delete=models.DO_NOTHING)
 
+    @property
+    def next_date(self):
+        next_date = Schedule.objects.filter(user=self.user).filter(date__gt=datetime.now()).filter(is_checked=False).order_by('date').first()
+        return next_date
+
     def __str__(self) -> str:
         return self.user.username
+    
+
+class Schedule(models.Model):
+    date = models.DateTimeField()
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    is_checked = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return str(self.date)
+        
