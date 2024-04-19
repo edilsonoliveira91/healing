@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, HttpResponse
 from .models import Skills, DoctorProfile, is_doctor, Schedule
-from datetime import datetime
+from datetime import datetime, timedelta
+from patient.models import Consultation
 
 #IMPORT MESSAGES
 from django.contrib import messages
@@ -15,7 +16,7 @@ def create_doctor(request):
     # Estamos verificando com a funcao criada na models para indentificar se o usuario ja é um medico cadastro pois ele nao pode criar 2 vezes o mesmo cadastro.
     if is_doctor(request.user):
         messages.add_message(request, constants.ERROR, 'Você já é um medico cadastrado!')
-        return redirect('doctors/schedule_appointment')
+        return redirect('/doctors/schedule')
 
     if request.method == 'GET':
         list_skills = Skills.objects.all()
@@ -83,3 +84,16 @@ def schedule(request):
         open_schedule.save()
         messages.add_message(request, constants.SUCCESS, 'Agendamento realizado com sucesso!')
         return redirect('/doctors/schedule')
+    
+
+def medical_appointment(request):
+    if not is_doctor(request.user):
+        messages.add_message(request, constants.ERROR, 'Você já é um medico cadastrado!')
+        return redirect('doctors/schedule_appointment')
+    
+    today = datetime.now().date()
+
+    appointment_today = Consultation.objects.filter(opened_date__user=request.user).filter(opened_date__date__lt=today + timedelta(days=1))
+    remaining_consultations = Consultation.objects.filter(opened_date__user=request.user).exclude(id__in=appointment_today.values('id'))
+    
+    return render(request, 'medical_appointment.html', {'appointment_today': appointment_today, 'remaining_consultations': remaining_consultations})

@@ -1,11 +1,18 @@
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse, redirect
 from datetime import datetime
 
 #IMPORTS MODELS
 from doctors.models import DoctorProfile, Skills, Schedule
+from .models import Consultation
+
+#IMPORT MESSAGES
+from django.contrib import messages
+from django.contrib.messages import constants
 
 def home(request):
     if request.method == 'GET':
+        print(request.user)
+        print()
         doctor_filter = request.GET.get('doctor')
         skill_filter = request.GET.getlist('skill')
         doctors = DoctorProfile.objects.all()
@@ -27,3 +34,26 @@ def choice_schedule(request, id_data_doctor):
         doctor = DoctorProfile.objects.get(id=id_data_doctor)
         opened_date = Schedule.objects.filter(user=doctor.user).filter(date__gte=datetime.now()).filter(is_checked=False)
         return render(request, 'choice_schedule.html', {'doctor': doctor, 'opened_date': opened_date})
+
+
+def schedule_time(request, id_date_open):
+    if request.method == 'GET':
+        date_open = Schedule.objects.get(id=id_date_open)
+
+        consultation = Consultation(
+            patient=request.user,
+            opened_date=date_open
+        )
+
+        date_open.is_checked=True
+        consultation.save()
+
+        messages.add_message(request, constants.SUCCESS, 'Consulta realizada com sucesso!')
+        return redirect('/patient/my_consultation')
+    
+
+def my_consultation(request):
+    if request.method == 'GET':
+        # O __gte é uma expressao para capturar os dados que forem MAIOR OU IGUAL se voce for usar menor ou igual voce pode usar __lte ou se for apenas maior seria __gt e menor seria __lt.
+        my_consultation = Consultation.objects.filter(patient=request.user).filter(opened_date__date__gte=datetime.now())
+        return render(request, 'my_consultation.html', {'my_consultation': my_consultation})
